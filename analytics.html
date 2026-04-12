@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>AgriSense PH — Analytics</title>
+  <meta name="theme-color" content="#1e5c1e">
+
+  <style>
+    /* ============================================================
+       BASE STYLES — katulad ng pangunahing app
+    ============================================================ */
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #f0f5f0;
+      min-height: 100dvh;
+      display: flex; flex-direction: column;
+      max-width: 480px; margin: 0 auto;
+    }
+
+    /* ============================================================
+       HEADER — parehong green header ng AgriSense PH
+    ============================================================ */
+    .app-header {
+      background: #1e5c1e;
+      padding: 12px 16px 10px;
+      display: flex; align-items: center;
+      justify-content: space-between; flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .back-btn {
+      background: rgba(255,255,255,0.15); border: none;
+      border-radius: 10px; padding: 7px 12px;
+      color: #fff; font-size: 13px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.25); }
+    .header-title { color: #fff; font-size: 16px; font-weight: 700; }
+    .header-sub   { color: #a8d4a8; font-size: 10px; margin-top: 1px; }
+
+    /* Language toggle */
+    .lang-toggle {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px; padding: 5px 12px;
+      color: #fff; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .lang-toggle .active-lang { color: #a8ffb8; }
+
+    /* ============================================================
+       SCROLLABLE CONTENT
+    ============================================================ */
+    .content {
+      flex: 1; overflow-y: auto; padding: 14px 12px 24px;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .content::-webkit-scrollbar { display: none; }
+
+    /* ============================================================
+       SECTION LABEL — maliliit na uppercase headings
+    ============================================================ */
+    .section-lbl {
+      font-size: 11px; font-weight: 700; color: #3a6a3a;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      margin-bottom: 8px; margin-top: 4px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .section-lbl::after { content: ''; flex: 1; height: 1px; background: #d4e8d4; }
+
+    /* ============================================================
+       SUMMARY METRIC CARDS
+       4 maliliit na cards sa taas — total detections, per crop, accuracy
+    ============================================================ */
+    .metric-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px; margin-bottom: 14px;
+    }
+    .metric-card {
+      background: #fff; border-radius: 14px; padding: 14px 12px;
+      border: 0.5px solid #d4e8d4;
+    }
+    .metric-icon  { font-size: 20px; margin-bottom: 6px; display: block; }
+    .metric-value { font-size: 28px; font-weight: 800; color: #1a3a1a; line-height: 1; }
+    .metric-label { font-size: 11px; color: #5a7a5a; margin-top: 3px; }
+    .metric-sub   { font-size: 10px; color: #9aaa9a; margin-top: 2px; }
+
+    /* ============================================================
+       CHART CARD — container ng bar charts
+    ============================================================ */
+    .chart-card {
+      background: #fff; border-radius: 16px; padding: 14px;
+      border: 0.5px solid #d4e8d4; margin-bottom: 14px;
+    }
+    .chart-title { font-size: 13px; font-weight: 700; color: #1a3a1a; margin-bottom: 12px; }
+
+    /* ============================================================
+       BAR CHART — horizontal bars para sa disease frequency
+       Gawa sa pure CSS/HTML — walang library kailangan
+    ============================================================ */
+    .bar-item { margin-bottom: 10px; }
+    .bar-label {
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: #3a5a3a; margin-bottom: 4px;
+    }
+    .bar-count { font-weight: 700; color: #1a3a1a; }
+    .bar-track { background: #e8f0e8; border-radius: 6px; height: 10px; overflow: hidden; }
+    .bar-fill  {
+      height: 100%; border-radius: 6px;
+      transition: width 0.6s ease; min-width: 4px;
+    }
+    /* Kulay ng bawat disease bar */
+    .bar-fill.healthy  { background: #1e7a3e; }
+    .bar-fill.blast    { background: #c05000; }
+    .bar-fill.blight   { background: #b84a00; }
+    .bar-fill.brownspot{ background: #8a5a00; }
+    .bar-fill.early    { background: #d04000; }
+    .bar-fill.late     { background: #a03000; }
+    .bar-fill.mold     { background: #7a4a20; }
+    .bar-fill.default  { background: #5a7a5a; }
+
+    /* ============================================================
+       ACCURACY GAUGE — nagpapakita ng average confidence ng AI
+    ============================================================ */
+    .gauge-wrap { display: flex; align-items: center; gap: 16px; }
+    .gauge-circle {
+      width: 80px; height: 80px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      background: conic-gradient(#1e5c1e var(--pct, 0%), #e8f0e8 0%);
+    }
+    .gauge-inner {
+      width: 58px; height: 58px; background: #fff;
+      border-radius: 50%; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .gauge-value { font-size: 16px; font-weight: 800; color: #1a3a1a; }
+    .gauge-lbl   { font-size: 9px; color: #5a7a5a; }
+    .gauge-info  { font-size: 12px; color: #3a5a3a; line-height: 1.6; }
+
+    /* ============================================================
+       CROP SPLIT — rice vs tomato breakdown
+    ============================================================ */
+    .crop-split { display: flex; gap: 10px; margin-bottom: 14px; }
+    .crop-stat {
+      flex: 1; background: #fff; border-radius: 14px;
+      padding: 12px; border: 0.5px solid #d4e8d4; text-align: center;
+    }
+    .crop-stat-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+    .crop-stat-name  { font-size: 11px; font-weight: 700; color: #5a7a5a; }
+    .crop-stat-count { font-size: 22px; font-weight: 800; color: #1a3a1a; }
+    .crop-stat-pct   { font-size: 11px; color: #5a7a5a; margin-top: 2px; }
+    /* Progress bar sa ilalim ng crop stat */
+    .crop-progress { background: #e8f0e8; border-radius: 4px; height: 5px; margin-top: 6px; overflow: hidden; }
+    .crop-progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .rice-fill   { background: #1e7a3e; }
+    .tomato-fill { background: #d04000; }
+
+    /* ============================================================
+       HISTORY TABLE — listahan ng mga nakaraang detections
+    ============================================================ */
+    .history-card {
+      background: #fff; border-radius: 16px;
+      padding: 14px; border: 0.5px solid #d4e8d4;
+      margin-bottom: 14px;
+    }
+    .history-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 10px;
+    }
+    .history-title { font-size: 13px; font-weight: 700; color: #1a3a1a; }
+    .clear-btn {
+      font-size: 11px; color: #c05000; background: #fff8f0;
+      border: 0.5px solid #f0c0a0; border-radius: 8px;
+      padding: 4px 10px; cursor: pointer;
+    }
+    /* Isang row ng history */
+    .history-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-top: 0.5px solid #e8f0e8;
+    }
+    .history-crop { font-size: 18px; flex-shrink: 0; }
+    .history-info { flex: 1; min-width: 0; }
+    .history-disease { font-size: 13px; font-weight: 600; color: #1a3a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-date    { font-size: 11px; color: #7a9a7a; margin-top: 1px; }
+    .history-conf {
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+      padding: 3px 8px; border-radius: 10px;
+    }
+    .conf-high   { background: #eaf5ea; color: #1a5a1a; }
+    .conf-medium { background: #fff8e8; color: #7a4a00; }
+    .conf-low    { background: #fff0f0; color: #8a1010; }
+    /* Kapag walang history pa */
+    .no-history {
+      text-align: center; padding: 24px 0;
+      color: #7a9a7a; font-size: 13px; line-height: 1.8;
+    }
+    .no-history-icon { font-size: 36px; display: block; margin-bottom: 8px; }
+
+    /* ============================================================
+       WEATHER SUMMARY — weather data analytics
+    ============================================================ */
+    .weather-summary {
+      background: #fff; border-radius: 16px;
+      padding: 14px; border: 0.5px solid #d4e8d4;
+      margin-bottom: 14px;
+    }
+    .weather-stat-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 8px; margin-top: 10px;
+    }
+    .weather-stat {
+      background: #f0f8f0; border-radius: 10px;
+      padding: 8px 6px; text-align: center;
+    }
+    .ws-icon  { font-size: 16px; display: block; margin-bottom: 3px; }
+    .ws-val   { font-size: 14px; font-weight: 700; color: #1a3a1a; display: block; }
+    .ws-label { font-size: 10px; color: #5a7a5a; display: block; }
+
+    /* ============================================================
+       EXPORT BUTTON — para ma-save ang data
+    ============================================================ */
+    .export-btn {
+      width: 100%; padding: 13px; border-radius: 14px;
+      background: #1e5c1e; color: #fff; font-size: 14px;
+      font-weight: 700; border: none; cursor: pointer;
+      margin-bottom: 8px; display: flex;
+      align-items: center; justify-content: center; gap: 8px;
+    }
+    .export-btn:active { opacity: 0.85; transform: scale(0.98); }
+    .export-btn.secondary {
+      background: #eaf5ea; color: #1e5c1e;
+      border: 1.5px solid #a8d0a8;
+    }
+
+    /* ============================================================
+       EMPTY STATE — kapag bagong install pa lang at walang data
+    ============================================================ */
+    .empty-state {
+      text-align: center; padding: 30px 20px;
+      color: #7a9a7a;
+    }
+    .empty-icon  { font-size: 48px; display: block; margin-bottom: 12px; }
+    .empty-title { font-size: 15px; font-weight: 700; color: #3a6a3a; margin-bottom: 6px; }
+    .empty-desc  { font-size: 13px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER
+  ============================================================ -->
+  <div class="app-header">
+    <div class="header-left">
+      <!-- Back button — bumabalik sa pangunahing app -->
+      <a href="index.html" class="back-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Bumalik
+      </a>
+      <div>
+        <div class="header-title">📊 Analytics</div>
+        <div class="header-sub">AgriSense PH · Data Dashboard</div>
+      </div>
+    </div>
+    <!-- Language toggle -->
+    <button class="lang-toggle" onclick="toggleLang()" id="lang-btn">
+      <span class="active-lang" id="lang-active">FIL</span>
+      <span style="color:rgba(255,255,255,0.5)">/</span>
+      <span id="lang-inactive" style="color:rgba(255,255,255,0.5)">EN</span>
+    </button>
+  </div>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <div class="content" id="main-content">
+    <!-- Lahat ng content ay ini-inject dito ng JavaScript -->
+    <div class="empty-state">
+      <span class="empty-icon">📊</span>
+      <div class="empty-title">Nilo-load ang data...</div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // STATE — kasalukuyang wika
+    // ============================================================
+    let lang = 'fil';
+
+    // ============================================================
+    // FUNCTION: toggleLang
+    // Nagpapalit ng wika sa pagitan ng Filipino at English
+    // ============================================================
+    function toggleLang() {
+      lang = lang === 'fil' ? 'eng' : 'fil';
+      document.getElementById('lang-active').textContent   = lang === 'fil' ? 'FIL' : 'EN';
+      document.getElementById('lang-inactive').textContent = lang === 'fil' ? 'EN' : 'FIL';
+      renderDashboard(); // I-re-render ang lahat ng content sa bagong wika
+    }
+
+    // ============================================================
+    // FUNCTION: loadHistory
+    // Kinukuha ang detection history mula sa localStorage
+    // Itinatago ito ng pangunahing app (index.html) kapag nag-detect
+    // ============================================================
+    function loadHistory() {
+      try {
+        return JSON.parse(localStorage.getItem('agrisense_history') || '[]');
+      } catch(e) {
+        console.error('History load error:', e);
+        return [];
+      }
+    }
+
+    // ============================================================
+    // FUNCTION: computeStats
+    // Kinakalkula ang lahat ng statistics mula sa history data
+    // Input:  array ng history records
+    // Output: object na may lahat ng computed statistics
+    // ============================================================
+    function computeStats(history) {
+      // Kung walang history, ibalik ang empty stats
+      if (!history.length) return null;
+
+      const stats = {
+        total: history.length,
+        rice: 0,
+        tomato: 0,
+        avgConfidence: 0,
+        diseaseCounts: {},  // { 'Rice Blast': 5, 'Brown Spot': 3, ... }
+        healthyCount: 0,
+        diseaseCount: 0,
+        recentWeather: null,
+        highRiskDays: 0
+      };
+
+      let totalConf = 0;
+
+      // I-loop ang bawat history record at i-tally
+      history.forEach(record => {
+        // Count per crop
+        if (record.crop === 'rice') stats.rice++;
+        else stats.tomato++;
+
+        // Accumulate confidence para sa average
+        totalConf += (record.confidence || 0);
+
+        // Count per disease
+        const d = record.disease || 'Unknown';
+        stats.diseaseCounts[d] = (stats.diseaseCounts[d] || 0) + 1;
+
+        // Healthy vs diseased
+        if (d.toLowerCase().includes('healthy')) stats.healthyCount++;
+        else stats.diseaseCount++;
+
+        // Kunin ang pinakabagong weather data
+        if (record.weather && !stats.recentWeather) {
+          stats.recentWeather = record.weather;
+        }
+      });
+
+      // Average confidence
+      stats.avgConfidence = Math.round(totalConf / history.length);
+
+      // I-sort ang disease counts mula pinaka-mataas
+      stats.topDiseases = Object.entries(stats.diseaseCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6); // Top 6 lang para hindi masyadong marami
+
+      return stats;
+    }
+
+    // ============================================================
+    // FUNCTION: getBarClass
+    // Nagbibigay ng CSS class para sa kulay ng bar
+    // batay sa pangalan ng sakit
+    // ============================================================
+    function getBarClass(diseaseName) {
+      const name = diseaseName.toLowerCase();
+      if (name.includes('healthy'))    return 'healthy';
+      if (name.includes('blast'))      return 'blast';
+      if (name.includes('bacterial'))  return 'blight';
+      if (name.includes('brown'))      return 'brownspot';
+      if (name.includes('early'))      return 'early';
+      if (name.includes('late'))       return 'late';
+      if (name.includes('mold'))       return 'mold';
+      return 'default';
+    }
+
+    // ============================================================
+    // FUNCTION: formatDate
+    // Kino-convert ang ISO date string sa madaling basahing format
+    // Input:  "2025-04-10T14:30:00.000Z"
+    // Output: "Apr 10, 2025 · 10:30 PM"
+    // ============================================================
+    function formatDate(isoString) {
+      try {
+        const d = new Date(isoString);
+        return d.toLocaleDateString('en-PH', {
+          month: 'short', day: 'numeric', year: 'numeric'
+        }) + ' · ' + d.toLocaleTimeString('en-PH', {
+          hour: '2-digit', minute: '2-digit'
+        });
+      } catch(e) {
+        return isoString; // Ibalik as-is kung may error
+      }
+    }
+
+    // ============================================================
+    // FUNCTION: renderDashboard
+    // Pangunahing function — ini-inject ang lahat ng HTML content
+    // sa main-content div batay sa history data at kasalukuyang wika
+    // ============================================================
+    function renderDashboard() {
+      const history = loadHistory();
+      const stats = computeStats(history);
+      const container = document.getElementById('main-content');
+
+      // Kapag walang detection history pa
+      if (!stats) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">🌱</span>
+            <div class="empty-title">${lang === 'fil' ? 'Wala pang datos' : 'No data yet'}</div>
+            <div class="empty-desc">
+              ${lang === 'fil'
+                ? 'Magsimula sa pag-detect ng sakit sa pangunahing app para makita ang analytics dito.'
+                : 'Start detecting diseases in the main app to see analytics here.'}
+            </div>
+          </div>
+          <a href="index.html" style="display:block;margin-top:16px">
+            <button class="export-btn">
+              🔍 ${lang === 'fil' ? 'Pumunta sa Detection' : 'Go to Detection'}
+            </button>
+          </a>`;
+        return;
+      }
+
+      // ── SUMMARY METRIC CARDS ──────────────────────────────────
+      // 4 metric cards sa taas na nagpapakita ng pinakamahalagang numbers
+      const metricsHtml = `
+        <div class="section-lbl">${lang === 'fil' ? 'Buod' : 'Summary'}</div>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <span class="metric-icon">🔍</span>
+            <div class="metric-value">${stats.total}</div>
+            <div class="metric-label">${lang === 'fil' ? 'Kabuuang Deteksyon' : 'Total Detections'}</div>
+            <div class="metric-sub">${lang === 'fil' ? 'Lahat ng crops' : 'All crops combined'}</div>
+          </div>
+          <div class="metric-card">
+            <span class="metric-icon">🦠</span>
+            <div class="metric-value">${stats.diseaseCount}</div>
+            <div class="metric-label">${lang === 'fil' ? 'May Sakit' : 'Diseased'}</div>
+            <div class="metric-sub">${stats.total > 0 ? Math.round(stats.diseaseCount/stats.total*100) : 0}% ${lang === 'fil' ? 'ng lahat' : 'of total'}</div>
+          </div>
+          <div class="metric-card">
+            <span class="metric-icon">✅</span>
+            <div class="metric-value">${stats.healthyCount}</div>
+            <div class="metric-label">${lang === 'fil' ? 'Malusog' : 'Healthy'}</div>
+            <div class="metric-sub">${stats.total > 0 ? Math.round(stats.healthyCount/stats.total*100) : 0}% ${lang === 'fil' ? 'ng lahat' : 'of total'}</div>
+          </div>
+          <div class="metric-card">
+            <span class="metric-icon">🎯</span>
+            <div class="metric-value">${stats.avgConfidence}%</div>
+            <div class="metric-label">${lang === 'fil' ? 'Average Tumpak' : 'Avg Accuracy'}</div>
+            <div class="metric-sub">${lang === 'fil' ? 'Kumpiyansa ng AI' : 'AI confidence'}</div>
+          </div>
+        </div>`;
+
+      // ── CROP SPLIT ────────────────────────────────────────────
+      // Nagpapakita kung ilan ang rice detections vs tomato
+      const ricePct   = stats.total > 0 ? Math.round(stats.rice / stats.total * 100) : 0;
+      const tomatoPct = stats.total > 0 ? Math.round(stats.tomato / stats.total * 100) : 0;
+      const cropSplitHtml = `
+        <div class="section-lbl">${lang === 'fil' ? 'Per Pananim' : 'By Crop'}</div>
+        <div class="crop-split">
+          <div class="crop-stat">
+            <span class="crop-stat-emoji">🌾</span>
+            <div class="crop-stat-name">${lang === 'fil' ? 'Palay' : 'Rice'}</div>
+            <div class="crop-stat-count">${stats.rice}</div>
+            <div class="crop-stat-pct">${ricePct}%</div>
+            <div class="crop-progress">
+              <div class="crop-progress-fill rice-fill" style="width:${ricePct}%"></div>
+            </div>
+          </div>
+          <div class="crop-stat">
+            <span class="crop-stat-emoji">🍅</span>
+            <div class="crop-stat-name">${lang === 'fil' ? 'Kamatis' : 'Tomato'}</div>
+            <div class="crop-stat-count">${stats.tomato}</div>
+            <div class="crop-stat-pct">${tomatoPct}%</div>
+            <div class="crop-progress">
+              <div class="crop-progress-fill tomato-fill" style="width:${tomatoPct}%"></div>
+            </div>
+          </div>
+        </div>`;
+
+      // ── ACCURACY GAUGE ────────────────────────────────────────
+      // Circular gauge na nagpapakita ng average AI confidence
+      const gaugePct = stats.avgConfidence;
+      const accuracyHtml = `
+        <div class="chart-card">
+          <div class="chart-title">🎯 ${lang === 'fil' ? 'Katumpakan ng AI' : 'AI Accuracy'}</div>
+          <div class="gauge-wrap">
+            <div class="gauge-circle" style="--pct:${gaugePct * 3.6}deg">
+              <div class="gauge-inner">
+                <div class="gauge-value">${gaugePct}%</div>
+                <div class="gauge-lbl">avg</div>
+              </div>
+            </div>
+            <div class="gauge-info">
+              <strong style="font-weight:700;color:#1a3a1a">
+                ${gaugePct >= 85 ? (lang === 'fil' ? '✓ Mataas na Katumpakan' : '✓ High Accuracy')
+                  : gaugePct >= 70 ? (lang === 'fil' ? 'Katamtamang Katumpakan' : 'Medium Accuracy')
+                  : (lang === 'fil' ? 'Mababang Katumpakan' : 'Low Accuracy')}
+              </strong><br>
+              <span style="font-size:12px;color:#5a7a5a">
+                ${lang === 'fil'
+                  ? `Base sa ${stats.total} na deteksyon. ${gaugePct >= 85 ? 'Maaasahan ang resulta.' : 'Dagdagan pa ang training data para mapabuti.'}`
+                  : `Based on ${stats.total} detections. ${gaugePct >= 85 ? 'Results are reliable.' : 'Add more training data to improve.'}`}
+              </span>
+            </div>
+          </div>
+        </div>`;
+
+      // ── DISEASE FREQUENCY BAR CHART ───────────────────────────
+      // Horizontal bar chart ng pinaka-common na sakit
+      const maxCount = stats.topDiseases.length > 0
+        ? Math.max(...stats.topDiseases.map(d => d[1])) : 1;
+
+      const barsHtml = stats.topDiseases.map(([disease, count]) => {
+        const pct = Math.round(count / maxCount * 100);
+        const barClass = getBarClass(disease);
+        return `
+          <div class="bar-item">
+            <div class="bar-label">
+              <span>${disease}</span>
+              <span class="bar-count">${count}x</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill ${barClass}" style="width:${pct}%"></div>
+            </div>
+          </div>`;
+      }).join('');
+
+      const chartHtml = `
+        <div class="chart-card">
+          <div class="chart-title">📊 ${lang === 'fil' ? 'Pinaka-Madalas na Sakit' : 'Most Frequent Diseases'}</div>
+          ${barsHtml || `<div style="text-align:center;color:#7a9a7a;font-size:13px;padding:16px 0">${lang === 'fil' ? 'Wala pang sapat na data' : 'Not enough data yet'}</div>`}
+        </div>`;
+
+      // ── WEATHER ANALYTICS ─────────────────────────────────────
+      // Nagpapakita ng pinakabagong weather data mula sa detections
+      let weatherHtml = '';
+      if (stats.recentWeather) {
+        const w = stats.recentWeather;
+        weatherHtml = `
+          <div class="section-lbl">${lang === 'fil' ? 'Huling Weather Data' : 'Last Weather Data'}</div>
+          <div class="weather-summary">
+            <div style="font-size:13px;font-weight:700;color:#1a3a1a;margin-bottom:6px">
+              📍 ${lang === 'fil' ? 'Nakunan sa' : 'Recorded at'} ${w.lat || 'N/A'}, ${w.lon || 'N/A'}
+            </div>
+            <div class="weather-stat-grid">
+              <div class="weather-stat">
+                <span class="ws-icon">🌡️</span>
+                <span class="ws-val">${w.temp || '--'}°C</span>
+                <span class="ws-label">Temperatura</span>
+              </div>
+              <div class="weather-stat">
+                <span class="ws-icon">💧</span>
+                <span class="ws-val">${w.humidity || '--'}%</span>
+                <span class="ws-label">Humidity</span>
+              </div>
+              <div class="weather-stat">
+                <span class="ws-icon">🌧️</span>
+                <span class="ws-val">${w.rain || '0'}mm</span>
+                <span class="ws-label">${lang === 'fil' ? 'Ulan' : 'Rain'}</span>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      // ── DETECTION HISTORY TABLE ───────────────────────────────
+      // Listahan ng mga nakaraang detections — pinakabago sa taas
+      const historyRowsHtml = history.slice(0, 20).map(record => {
+        // Kulay ng confidence badge
+        const confClass = record.confidence >= 85 ? 'conf-high'
+          : record.confidence >= 70 ? 'conf-medium' : 'conf-low';
+        const cropEmoji = record.crop === 'rice' ? '🌾' : '🍅';
+        return `
+          <div class="history-row">
+            <div class="history-crop">${cropEmoji}</div>
+            <div class="history-info">
+              <div class="history-disease">${record.disease || 'Unknown'}</div>
+              <div class="history-date">${formatDate(record.date)}</div>
+            </div>
+            <div class="history-conf ${confClass}">${record.confidence || '--'}%</div>
+          </div>`;
+      }).join('');
+
+      const historyHtml = `
+        <div class="section-lbl">${lang === 'fil' ? 'Kasaysayan ng Deteksyon' : 'Detection History'}</div>
+        <div class="history-card">
+          <div class="history-header">
+            <div class="history-title">
+              ${lang === 'fil' ? 'Huling 20 Deteksyon' : 'Last 20 Detections'}
+            </div>
+            <button class="clear-btn" onclick="clearHistory()">
+              ${lang === 'fil' ? 'Burahin Lahat' : 'Clear All'}
+            </button>
+          </div>
+          ${historyRowsHtml || `
+            <div class="no-history">
+              <span class="no-history-icon">📋</span>
+              ${lang === 'fil' ? 'Wala pang kasaysayan ng deteksyon.' : 'No detection history yet.'}
+            </div>`}
+        </div>`;
+
+      // ── EXPORT BUTTONS ────────────────────────────────────────
+      // Para ma-save ang data bilang CSV
+      const exportHtml = `
+        <div class="section-lbl">${lang === 'fil' ? 'I-export ang Data' : 'Export Data'}</div>
+        <button class="export-btn" onclick="exportCSV()">
+          📥 ${lang === 'fil' ? 'I-download bilang CSV' : 'Download as CSV'}
+        </button>
+        <button class="export-btn secondary" onclick="exportJSON()">
+          📄 ${lang === 'fil' ? 'I-download bilang JSON' : 'Download as JSON'}
+        </button>`;
+
+      // ── I-INJECT ANG LAHAT SA CONTAINER ──────────────────────
+      container.innerHTML =
+        metricsHtml +
+        cropSplitHtml +
+        accuracyHtml +
+        chartHtml +
+        weatherHtml +
+        historyHtml +
+        exportHtml;
+    }
+
+    // ============================================================
+    // FUNCTION: clearHistory
+    // Binubura ang lahat ng detection history mula sa localStorage
+    // May confirmation dialog bago mag-delete
+    // ============================================================
+    function clearHistory() {
+      const msg = lang === 'fil'
+        ? 'Sigurado ka bang gusto mong burahin ang lahat ng kasaysayan?'
+        : 'Are you sure you want to clear all detection history?';
+      if (confirm(msg)) {
+        localStorage.removeItem('agrisense_history');
+        renderDashboard(); // I-re-render para mawala ang data sa UI
+      }
+    }
+
+    // ============================================================
+    // FUNCTION: exportCSV
+    // Kino-convert ang history data sa CSV format at dino-download
+    // CSV = Comma Separated Values — bubukas sa Excel o Google Sheets
+    // ============================================================
+    function exportCSV() {
+      const history = loadHistory();
+      if (!history.length) {
+        alert(lang === 'fil' ? 'Walang data para i-export.' : 'No data to export.');
+        return;
+      }
+
+      // Gumawa ng CSV header row
+      const headers = ['Date', 'Crop', 'Disease', 'Confidence (%)', 'Temperature (C)', 'Humidity (%)', 'Rain (mm)', 'Wind (km/h)'];
+      const rows = history.map(r => [
+        r.date || '',
+        r.crop || '',
+        r.disease || '',
+        r.confidence || '',
+        r.weather?.temp || '',
+        r.weather?.humidity || '',
+        r.weather?.rain || '',
+        r.weather?.wind || ''
+      ]);
+
+      // Isama ang headers at rows sa CSV string
+      const csv = [headers, ...rows]
+        .map(row => row.map(cell => `"${cell}"`).join(','))
+        .join('\n');
+
+      // Gumawa ng downloadable file
+      downloadFile('agrisense_ph_data.csv', csv, 'text/csv');
+    }
+
+    // ============================================================
+    // FUNCTION: exportJSON
+    // Kino-convert ang history data sa JSON format at dino-download
+    // JSON = para sa mga developer na gusto ng raw data
+    // ============================================================
+    function exportJSON() {
+      const history = loadHistory();
+      if (!history.length) {
+        alert(lang === 'fil' ? 'Walang data para i-export.' : 'No data to export.');
+        return;
+      }
+      const json = JSON.stringify(history, null, 2); // 2 = pretty print
+      downloadFile('agrisense_ph_data.json', json, 'application/json');
+    }
+
+    // ============================================================
+    // FUNCTION: downloadFile
+    // Helper function — gumagawa ng temporary download link
+    // at awtomatikong kino-click para ma-download ang file
+    // ============================================================
+    function downloadFile(filename, content, mimeType) {
+      // Gumawa ng Blob (Binary Large Object) mula sa text content
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob); // Gumawa ng temporary URL
+
+      // Gumawa ng invisible na link at i-click ito
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+
+      // Linisin ang temporary link at URL pagkatapos ng download
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+    }
+
+    // ============================================================
+    // FUNCTION: addSampleData (para sa testing)
+    // Nagdadagdag ng sample history data para makita ang analytics
+    // I-call ito sa browser console: addSampleData()
+    // ============================================================
+    function addSampleData() {
+      const sampleDiseases = [
+        { crop:'rice',   disease:'Rice Blast',           confidence:91 },
+        { crop:'rice',   disease:'Healthy Rice',         confidence:94 },
+        { crop:'rice',   disease:'Rice Blast',           confidence:88 },
+        { crop:'rice',   disease:'Brown Spot',           confidence:85 },
+        { crop:'rice',   disease:'Bacterial Leaf Blight',confidence:90 },
+        { crop:'tomato', disease:'Early Blight',         confidence:87 },
+        { crop:'tomato', disease:'Late Blight',          confidence:93 },
+        { crop:'tomato', disease:'Healthy Tomato',       confidence:96 },
+        { crop:'rice',   disease:'Rice Blast',           confidence:89 },
+        { crop:'tomato', disease:'Leaf Mold',            confidence:82 }
+      ];
+
+      const history = sampleDiseases.map((s, i) => ({
+        ...s,
+        date: new Date(Date.now() - i * 86400000).toISOString(), // Bawat isa ay isang araw ang pagitan
+        weather: { temp: 28 + Math.floor(Math.random()*5), humidity: 82 + Math.floor(Math.random()*12), rain: Math.random() > 0.5 ? 3.2 : 0, wind: 12, lat: '15.14', lon: '120.59' }
+      }));
+
+      localStorage.setItem('agrisense_history', JSON.stringify(history));
+      renderDashboard();
+      console.log('Sample data added! Refresh to see changes.');
+    }
+
+    // ============================================================
+    // INITIALIZATION — kapag na-load na ang page, i-render agad
+    // ============================================================
+    window.addEventListener('load', () => {
+      renderDashboard();
+    });
+  </script>
+
+</body>
+</html>
