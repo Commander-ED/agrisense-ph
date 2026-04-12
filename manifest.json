@@ -1,0 +1,44 @@
+{
+  "name": "AgriSense PH — Smart Disease Detector",
+  "short_name": "AgriSense PH",
+  "description": "AI-powered crop disease detection for Central Luzon farmers. Detects rice and tomato diseases with voice output in Filipino and English.",
+  "start_url": "/agrisense-ph/",
+  "scope": "/agrisense-ph/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f5f0",
+  "theme_color": "#1e5c1e",
+  "lang": "fil",
+  "categories": ["agriculture", "health", "utilities"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Suriin ang Dahon",
+      "short_name": "Detect",
+      "description": "Mag-detect ng sakit ng pananim",
+      "url": "/agrisense-ph/index.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analytics Dashboard",
+      "short_name": "Analytics",
+      "description": "Tingnan ang detection statistics",
+      "url": "/agrisense-ph/analytics.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

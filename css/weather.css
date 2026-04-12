@@ -1,0 +1,184 @@
+/* ============================================================
+   weather.css
+   Styles para sa weather hero card ng AgriSense PH.
+   Kasama ang weather stats, risk banner, at risk pills.
+   ============================================================ */
+
+/* ── WEATHER HERO CARD ───────────────────────────────────────
+   Malaking dark green card sa taas ng app.
+   Nagpapakita ng temperatura, humidity, ulan, at risk level.
+*/
+.weather-hero {
+  background: #1e5c1e;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 14px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dekorasyon na circle sa background ng card */
+.weather-hero::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── WEATHER TOP SECTION ─────────────────────────────────────
+   Dalawang column — temperatura sa kaliwa, icon sa kanan.
+*/
+.weather-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.weather-left  {}
+.weather-right { text-align: right; }
+
+.weather-loc  { font-size: 11px; color: #a8d4a8; margin-bottom: 4px; }
+.weather-temp { font-size: 42px; font-weight: 800; color: #fff; line-height: 1; }
+.weather-desc { font-size: 12px; color: #c8e8c8; margin-top: 2px; }
+
+/* Malaking weather icon (emoji) */
+.weather-icon-big { font-size: 48px; line-height: 1; }
+
+/* Refresh button — maliit at transparent */
+.weather-refresh-btn {
+  background: transparent;
+  border: none;
+  color: #a8d4a8;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 0;
+  margin-top: 6px;
+  display: block;
+}
+.weather-refresh-btn:hover { color: #fff; }
+
+/* ── WEATHER STATS GRID ──────────────────────────────────────
+   3-column grid para sa humidity, ulan, at hangin.
+*/
+.weather-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.w-stat {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 7px 6px;
+  text-align: center;
+}
+.w-stat-icon { font-size: 14px; display: block; margin-bottom: 2px; }
+.w-stat-val  { font-size: 13px; font-weight: 700; color: #fff; display: block; }
+.w-stat-lbl  { font-size: 9px; color: #a8d4a8; display: block; margin-top: 1px; }
+
+/* ── RISK BANNER ─────────────────────────────────────────────
+   Nagpapakita ng overall disease risk level.
+   Tatlong variant: low (subtle), medium (yellow), high (red).
+*/
+.risk-banner {
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.risk-banner.low    { background: rgba(255, 255, 255, 0.15); }
+.risk-banner.medium { background: rgba(255, 200, 0, 0.2); }
+.risk-banner.high   { background: rgba(255, 80, 80, 0.2); }
+
+.risk-content { flex: 1; }
+
+/* Animated dot para sa risk level */
+.risk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.risk-dot.low    { background: #7aff7a; }
+.risk-dot.medium { background: #ffd040; }
+.risk-dot.high   { background: #ff6060; animation: risk-pulse 1.2s infinite; }
+
+/* Pulsing animation para sa high risk dot */
+@keyframes risk-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.risk-title   { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.risk-msg     { font-size: 11px; color: #d0e8d0; line-height: 1.5; }
+.risk-top-msg { font-size: 11px; color: #d0e8d0; line-height: 1.5; margin-top: 4px; }
+
+/* ── RISK PILLS ──────────────────────────────────────────────
+   Maliliit na colored tags para sa specific na diseases.
+*/
+.risk-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+.risk-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.risk-pill.high   { background: rgba(255, 80, 80, 0.4); }
+.risk-pill.medium { background: rgba(255, 200, 0, 0.35); }
+
+/* Listen button sa loob ng risk banner */
+.weather-listen-btn {
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 8px;
+  padding: 5px 12px;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+.weather-listen-btn:hover { background: rgba(255, 255, 255, 0.25); }
+
+/* ── LOADING AT ERROR STATES ─────────────────────────────────
+   Ipinakita habang nife-fetch ang weather data o kapag may error.
+*/
+.weather-loading {
+  text-align: center;
+  padding: 14px 0;
+  color: #a8d4a8;
+  font-size: 13px;
+}
+
+.weather-error {
+  text-align: center;
+  padding: 10px 0;
+  color: #ffaaaa;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* Retry button sa loob ng error message */
+.weather-retry-btn {
+  display: block;
+  margin: 8px auto 0;
+  padding: 5px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 150, 150, 0.5);
+  background: transparent;
+  color: #ffaaaa;
+  cursor: pointer;
+  font-size: 12px;
+}
