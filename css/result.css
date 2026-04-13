@@ -1,0 +1,326 @@
+/* ============================================================
+   result.css
+   Styles para sa detection result card ng AgriSense PH.
+   Kasama ang disease name, confidence bar, treatment box,
+   weather alert, at all scores section.
+   ============================================================ */
+
+/* ── RESULT CARD CONTAINER ───────────────────────────────────
+   Nakatago sa simula (display: none).
+   Ipinakita pagkatapos ng successful detection.
+*/
+.result-card {
+  display: none;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  margin-top: 14px;
+  border: 1.5px solid #d4e8d4;
+}
+
+/* ── CROP BADGE ──────────────────────────────────────────────
+   Maliliit na colored pill na nagpapakita kung anong crop.
+*/
+.result-crop-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.badge-rice   { background: #eaf5ea; color: #1a5a1a; }
+.badge-tomato { background: #fff0ea; color: #7a2800; }
+
+/* ── DISEASE NAME ────────────────────────────────────────────
+   Malaking bold na pangalan ng nadetektang sakit.
+   Dalawang variant: healthy (berde) at disease (orange).
+*/
+.result-disease-name {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+.result-disease-name.healthy { color: #1a7a3a; }
+.result-disease-name.disease { color: #c05000; }
+
+/* ── CONFIDENCE BAR ──────────────────────────────────────────
+   Visual na bar na nagpapakita ng AI confidence percentage.
+   May animated fill at dalawang kulay (healthy/disease).
+*/
+.conf-label {
+  font-size: 11px;
+  color: #5a7a5a;
+  margin-bottom: 4px;
+}
+
+.conf-track {
+  background: #e0ece0;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.conf-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease; /* Smooth animation ng bar */
+}
+
+/* ── TREATMENT BOX ───────────────────────────────────────────
+   Mga hakbang para gamutin ang sakit.
+   Dalawang variant: ok (green) at warning (orange).
+   Ang left border ay nagbibigay ng visual na indicator.
+*/
+.treatment-box {
+  border-radius: 0 12px 12px 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+.treatment-box.ok      { background: #f0fbf0; border-left: 3px solid #1e7a3e; color: #1a3a1a; }
+.treatment-box.warning { background: #fff8f0; border-left: 3px solid #c05000; color: #5a2800; }
+
+.treat-title {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.treat-title.ok      { color: #1e7a3e; }
+.treat-title.warning { color: #c05000; }
+
+.treat-step { margin-bottom: 3px; }
+
+/* ── LOW CONFIDENCE WARNING ──────────────────────────────────
+   Ipinakita kapag mababa ang AI confidence (< 70%).
+   Nagbibigay ng tips kung paano ayusin ang larawan.
+*/
+.low-conf-warning {
+  background: #fff8e8;
+  border-left: 3px solid #c08000;
+  border-radius: 0 12px 12px 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #5a3a00;
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.low-conf-title {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #c08000;
+  margin-bottom: 6px;
+}
+
+.low-conf-reasons { margin-bottom: 8px; }
+.low-conf-item    { margin-left: 4px; }
+
+.low-conf-tip {
+  background: rgba(192, 128, 0, 0.08);
+  border-radius: 8px;
+  padding: 7px 10px;
+  margin-top: 6px;
+}
+
+/* ── WEATHER ALERT BOX ───────────────────────────────────────
+   Nagpapakita kapag ang weather ay konektado sa nadetektang sakit.
+   Orange ang kulay para standout mula sa treatment box.
+*/
+.weather-alert-box {
+  background: #fff8ee;
+  border-left: 3px solid #e67e00;
+  border-radius: 0 10px 10px 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #7a3d00;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.weather-alert-box strong {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 2px;
+  color: #e67e00;
+}
+
+/* ── ALL SCORES SECTION ──────────────────────────────────────
+   Nagpapakita ng confidence ng bawat disease class —
+   para transparent ang AI sa farmer.
+*/
+.all-scores { margin-top: 12px; }
+
+.scores-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #7a9a7a;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.score-item { margin-bottom: 8px; }
+
+.score-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #3a5a3a;
+  margin-bottom: 3px;
+}
+
+.score-track {
+  background: #e0ece0;
+  border-radius: 4px;
+  height: 5px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: #7ab87a; /* Default color — puwedeng i-override ng inline style */
+  transition: width 0.4s ease;
+}
+
+/* ── NOT A LEAF WARNING BOX ──────────────────────────────────
+   Ipinakita kapag hindi nakilala ng AI ang larawan.
+   Mas friendly at encouraging ang design —
+   hindi lang nagpapalabas ng error kundi nagbibigay
+   ng malinaw na gabay kung paano ayusin.
+*/
+.not-a-leaf-box {
+  background: #fff8f0;
+  border-left: 3px solid #8a5a00;
+  border-radius: 0 12px 12px 0;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+/* Malaking leaf icon sa itaas ng card */
+.not-a-leaf-icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.not-a-leaf-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #6a3a00;
+  margin-bottom: 5px;
+}
+
+.not-a-leaf-desc {
+  font-size: 12px;
+  color: #7a4a10;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+/* Tips section — green background para mag-standout */
+.not-a-leaf-tips {
+  background: #f0fbf0;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.tips-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e5c1e;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tips-item {
+  font-size: 12px;
+  color: #1a3a1a;
+  line-height: 1.7;
+}
+
+/* ── NOT A LEAF TOAST ────────────────────────────────────────
+   Simpleng card na lumalabas IMBES ng result card kapag
+   hindi nakilala ng AI ang larawan bilang dahon ng pananim.
+   Walang disease name, walang confidence bar, walang treatment —
+   message at tips lang para hindi malito ang farmer.
+*/
+.not-a-leaf-toast {
+  background: #fff8f0;
+  border: 1.5px solid #c08000;
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  animation: toast-in 0.25s ease;
+}
+
+/* Slide-in animation para sa toast */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Malaking leaf icon sa kaliwa */
+.toast-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.toast-content { flex: 1; min-width: 0; }
+
+/* Title — pangalan ng problema */
+.toast-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #7a3d00;
+  margin-bottom: 5px;
+  line-height: 1.3;
+}
+
+/* Main message — explanation kung bakit */
+.toast-msg {
+  font-size: 12px;
+  color: #5a3000;
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+
+/* Tips section — green para standout */
+.toast-tips {
+  background: #f0fbf0;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.toast-tip {
+  font-size: 12px;
+  color: #1a3a1a;
+  line-height: 1.75;
+}
+
+/* Close button sa kanan ng toast */
+.toast-close {
+  background: none;
+  border: none;
+  color: #c08000;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  line-height: 1;
+  opacity: 0.7;
+}
+.toast-close:hover { opacity: 1; }
